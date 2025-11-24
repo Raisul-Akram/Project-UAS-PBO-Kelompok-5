@@ -5,3 +5,8 @@ public class Admin extends Account {
         super(id, username, password);
     }
 
+    @Override
+    public void showMenu() {
+        System.out.println("Admin Menu");
+    }
+}
