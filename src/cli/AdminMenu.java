@@ -21,3 +21,10 @@ import java.util.Scanner;
  * Mengelola film, jadwal tayang, user, transaksi, dan laporan.
  * @author Kelompok 5
  */
+
+public class AdminMenu {
+    private MovieService movieService;
+    private BookingService bookingService;
+    private BookingRepository bookingRepo;
+    private UserRepository userRepo;
+    private Scanner scanner;
