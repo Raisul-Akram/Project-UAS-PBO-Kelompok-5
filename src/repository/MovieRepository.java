@@ -79,6 +79,21 @@ public class MovieRepository {
         return deleteById(id);
     }
 
+     // =====================
+    // FILE HANDLING
+    // =====================
+    private void loadFromFile() {
+        List<String> lines = FileManager.getInstance().readFile(FILE_PATH);
+
+        movies.clear(); // penting!
+
+        for (String line : lines) {
+            try {
+                String[] parts = line.split(",");
+                if (parts.length != 3) continue;
+
+               
+
 
     
 
