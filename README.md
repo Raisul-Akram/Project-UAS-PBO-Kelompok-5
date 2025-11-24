@@ -1,7 +1,6 @@
 # 🎬 Dokumentasi Proyek: Sistem Pemesanan Tiket Bioskop (CLI)
-
-## KELOMPOK 5 
-## 👥 Anggota Kelompok
+ 
+## 👥 Anggota Kelompok 5
 Proyek ini disusun untuk memenuhi tugas oleh:
 
 1. **Urfan (2408107010038)**
@@ -114,3 +113,11 @@ classDiagram
     Tiket "1" --> "1" Jadwal
     Tiket "1" --> "1" Kursi
     Tiket "1" --> "1" Pengguna
+```
+## PEMBAGIAN TUGAS KELOMPOK
+1. **Urfan : File Readme**
+2. **Keiveen Aldiandra : Source Code**
+3. **Cut Wynona Andromeda : Membuat PPT**
+4. **Nayla Khansa Livya: Membuat PPT**
+5. **Muhammad Razi Siregar: Source Code**
+6. **Raisul Akram: Source Code**
