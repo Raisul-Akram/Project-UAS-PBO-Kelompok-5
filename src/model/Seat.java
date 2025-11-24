@@ -8,4 +8,8 @@ public class Seat {
     private String id;
     private boolean isAvailable;
 
+    public Seat(String id) {
+        this.id = id;
+        this.isAvailable = true;
+    }
 
