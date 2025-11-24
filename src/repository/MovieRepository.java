@@ -74,6 +74,11 @@ public class MovieRepository {
         return false;
     }
 
+    // agar kompatibel dengan kode lama
+    public boolean delete(String id) {
+        return deleteById(id);
+    }
+
 
     
 
