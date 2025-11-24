@@ -6,3 +6,9 @@ public class VirtualAccountPayment implements Payment {
         System.out.println("Pembayaran Virtual Account berhasil.");
         return true;
     }
+
+@Override
+    public String getPaymentType() {
+        return "Virtual Account";
+    }
+}
