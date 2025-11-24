@@ -115,7 +115,8 @@ classDiagram
     Tiket "1" --> "1" Pengguna
 ```
 ## CARA MENJALANKAN PROGRAM
-* java -cp bin main
+* javac -d bin -sourcepath src src/Main.java (Compile)
+* java -cp bin main (Running)
 ### ![WhatsApp Image 2025-11-24 at 16 54 58_2fca044d](https://github.com/user-attachments/assets/9377efdc-b380-4c6d-a6f2-b3386ef484ec)
 
 
