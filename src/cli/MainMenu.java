@@ -61,3 +61,20 @@ public void display() {
             }
         }
     }
+    private void login() {
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
+            try {
+                Account account = authService.login(username, password);
+                if (account instanceof model.Admin) {
+                    new AdminMenu().display();
+                } else {
+                    new UserMenu(account.getUsername()).display();
+                }
+            } catch (LoginFailedException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+    }
+}
