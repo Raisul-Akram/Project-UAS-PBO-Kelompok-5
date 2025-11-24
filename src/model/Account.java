@@ -10,3 +10,10 @@ public abstract class Account {
         this.username = username;
         this.password = password;
     }
+
+    public String getId() { return id; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+
+    public abstract void showMenu();
+}
