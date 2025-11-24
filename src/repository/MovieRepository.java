@@ -79,7 +79,7 @@ public class MovieRepository {
         return deleteById(id);
     }
 
-    / =====================
+    // =====================
     // FILE HANDLING
     // =====================
     private void loadFromFile() {
@@ -103,6 +103,16 @@ public class MovieRepository {
         }
     }
 
+    private void saveToFile() {
+        List<String> lines = new ArrayList<>();
+        for (Movie m : movies) {
+            lines.add(m.getId() + "," + m.getTitle() + "," + m.getGenre());
+        }
+        FileManager.getInstance().writeFile(FILE_PATH, lines);
+    }
+}
+
+   
     
 
 
