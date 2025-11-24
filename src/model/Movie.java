@@ -16,3 +16,13 @@ public class Movie {
         this.genre = genre;
         this.popularity = 0;
     }
+
+    // Getters & Setters
+    public String getId() { return id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
+    public int getPopularity() { return popularity; }
+    public void incrementPopularity() { this.popularity++; }
+}
