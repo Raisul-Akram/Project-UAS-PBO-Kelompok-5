@@ -111,10 +111,3 @@ public class MovieRepository {
         FileManager.getInstance().writeFile(FILE_PATH, lines);
     }
 }
-
-   
-    
-
-
-    
-
