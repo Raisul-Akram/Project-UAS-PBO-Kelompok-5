@@ -13,3 +13,15 @@ public class UserRepository {
     public UserRepository() {
         loadDummyData();
     }
+
+    private void loadDummyData() {
+        // USER BIASA
+        users.add(new User("U001", "user1", "pass123"));
+
+        // ADMIN SEHARUSNYA OBJECT ADMIN, bukan USER
+        users.add(new Admin("A001", "admin", "admin123"));
+    }
+
+    public List<Account> findAll() {
+        return users;
+    }
