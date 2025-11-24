@@ -25,3 +25,13 @@ public class UserRepository {
     public List<Account> findAll() {
         return users;
     }
+
+    public Account findByUsername(String username) {
+        for (Account u : users) {
+            if (u.getUsername().equals(username)) {
+                return u;
+            }
+        }
+        return null;
+    }
+}
