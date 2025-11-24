@@ -143,3 +143,64 @@ public class UserMenu {
         System.out.println("2. QRIS");
         System.out.println("3. Virtual Account");
         System.out.print("Pilih: ");
+
+        int payChoice = -1;
+        boolean validPayChoice = false;
+        while (!validPayChoice) {
+            try {
+                payChoice = Integer.parseInt(scanner.nextLine());
+                if (payChoice < 1 || payChoice > 3) {
+                    System.out.println("Pilihan tidak valid, silakan coba lagi.");
+                    System.out.print("Pilih: ");
+                } else {
+                    validPayChoice = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Input tidak valid. Silakan masukkan angka 1, 2, atau 3.");
+                System.out.print("Pilih: ");
+            }
+        }
+
+        Payment payment = getPaymentMethod(payChoice);
+        if (paymentService.process(payment, price)) {
+            String bookingCode = "BK" + System.currentTimeMillis(); // Kode booking otomatis
+            Booking booking = new Booking(bookingCode, userId, showtimeId, seats, price);
+            try {
+                bookingService.createBooking(booking);
+                System.out.println("Pemesanan berhasil! Kode Booking: " + bookingCode);
+                QRGenerator.generateQR(bookingCode); // Bonus QR ASCII
+            } catch (SeatUnavailableException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Pembayaran gagal.");
+        }
+    }
+
+    private Payment getPaymentMethod(int choice) {
+        return switch (choice) {
+            case 1 -> new CashPayment();
+            case 2 -> new QRISPayment();
+            case 3 -> new VirtualAccountPayment();
+            default -> new CashPayment();
+        };
+    }
+
+    private void viewHistory() {
+        List<Booking> bookings = bookingService.getBookingsByUser(userId);
+        if (bookings.isEmpty()) {
+            System.out.println("Belum ada riwayat pemesanan.");
+            return;
+        }
+
+        System.out.println("\n=== Riwayat Pemesanan ===");
+        for (Booking b : bookings) {
+            System.out.println(
+                    "Kode: " + b.getBookingCode() +
+                    " | Showtime: " + b.getShowtimeId() +
+                    " | Kursi: " + String.join(",", b.getSeats()) +
+                    " | Total: " + b.getTotalPrice()
+            );
+        }
+    }
+}
