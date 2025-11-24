@@ -47,3 +47,20 @@ public class MovieRepository {
         return null;
     }
 
+    // =====================
+    // UPDATE
+    // =====================
+    public boolean update(Movie updatedMovie) {
+        for (int i = 0; i < movies.size(); i++) {
+            if (movies.get(i).getId().equals(updatedMovie.getId())) {
+                movies.set(i, updatedMovie);
+                saveToFile();
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    
+
