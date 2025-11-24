@@ -244,3 +244,23 @@ private void deleteMovie() {
             );
         }
     }
+
+private void generateReport() {
+        List<Booking> all = bookingRepo.findAll();
+        int totalTiket = 0;
+        double totalPendapatan = 0;
+
+        for(Booking b : all) {
+            totalTiket += b.getSeats().size();
+            totalPendapatan += b.getTotalPrice();
+        }
+
+        System.out.println("\n=== Laporan ===");
+        System.out.println("Total Tiket Terjual : " + totalTiket);
+        System.out.println("Total Pendapatan    : Rp " + (long)totalPendapatan);
+        
+        FileManager.getInstance().writeFile("data/report.txt",
+                List.of("Total Tiket: " + totalTiket, "Pendapatan: " + totalPendapatan));
+        System.out.println("(Laporan telah diekspor ke data/report.txt)");
+    }
+}
