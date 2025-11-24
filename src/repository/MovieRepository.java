@@ -61,6 +61,19 @@ public class MovieRepository {
         return false;
     }
 
+    // =====================
+    // DELETE
+    // =====================
+    public boolean deleteById(String id) {
+        Movie target = findById(id);
+        if (target != null) {
+            movies.remove(target);
+            saveToFile();
+            return true;
+        }
+        return false;
+    }
+
 
     
 
