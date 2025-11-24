@@ -6,3 +6,9 @@ public class CashPayment implements Payment {
         System.out.println("Pembayaran tunai berhasil.");
         return true;
     }
+
+ @Override
+    public String getPaymentType() {
+        return "Tunai";
+    }
+}
