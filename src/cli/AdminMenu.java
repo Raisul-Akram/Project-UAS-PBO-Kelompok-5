@@ -1,11 +1,10 @@
 package cli;
 
-import model.Account; // Tambahan import ini penting
-import model.Admin;   // Tambahan import ini penting
+import model.Account;
+import model.Admin;
 import model.Booking;
 import model.Movie;
 import model.Showtime;
-import model.User;
 import service.BookingService;
 import service.MovieService;
 import repository.BookingRepository;
@@ -17,11 +16,9 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Menu CLI untuk Admin.
- * Mengelola film, jadwal tayang, user, transaksi, dan laporan.
+ * Menu CLI untuk Admin (Versi PRO + Fitur Batal).
  * @author Kelompok 5
  */
-
 public class AdminMenu {
     private MovieService movieService;
     private BookingService bookingService;
@@ -29,7 +26,14 @@ public class AdminMenu {
     private UserRepository userRepo;
     private Scanner scanner;
 
-public AdminMenu() {
+    // ANSI Colors
+    private final String RESET = "\u001B[0m";
+    private final String GOLD = "\u001B[33m";
+    private final String CYAN = "\u001B[36m";
+    private final String GREEN = "\u001B[32m";
+    private final String RED = "\u001B[31m";
+
+    public AdminMenu() {
         this.movieService = new MovieService();
         this.bookingService = new BookingService();
         this.bookingRepo = new BookingRepository();
@@ -37,19 +41,19 @@ public AdminMenu() {
         this.scanner = new Scanner(System.in);
     }
 
-public void display() {
+    public void display() {
         while (true) {
-            System.out.println("\n\033[33m=== Admin Menu ===\033[0m");
-            System.out.println("1. Tambah Film");
-            System.out.println("2. Edit Film");
-            System.out.println("3. Hapus Film");
-            System.out.println("4. Lihat Daftar Film");
-            System.out.println("5. Atur Jadwal Tayang");
-            System.out.println("6. Lihat Daftar User");
-            System.out.println("7. Lihat Daftar Transaksi");
-            System.out.println("8. Generate Laporan");
-            System.out.println("9. Logout");
-            System.out.print("Pilih: ");
+            printHeader();
+            printDashboard(); 
+
+            System.out.println("\n" + GOLD + "=== MAIN NAVIGATION ===" + RESET);
+            System.out.printf("%-30s %-30s\n", "1. [+ Film] Tambah Film", "5. [Jadwal] Atur Tayangan");
+            System.out.printf("%-30s %-30s\n", "2. [Edit] Edit Film", "6. [User] Lihat User");
+            System.out.printf("%-30s %-30s\n", "3. [Hapus] Hapus Film", "7. [Trans] Riwayat Transaksi");
+            System.out.printf("%-30s %-30s\n", "4. [List] Lihat Daftar Film", "8. [Lapor] Generate Laporan");
+            System.out.println("9. [Keluar] Logout");
+            System.out.println("------------------------------------------------------------");
+            System.out.print("Pilih Menu > ");
 
             boolean validInput = false;
             while (!validInput) {
@@ -71,97 +75,175 @@ public void display() {
                         default -> throw new InvalidInputException("Pilihan tidak valid.");
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("Input harus angka.");
-                    System.out.print("Pilih: ");
+                    System.out.println(RED + "Input harus angka." + RESET);
+                    System.out.print("Pilih Menu > ");
                 } catch (InvalidInputException e) {
-                    System.out.println("Error: " + e.getMessage());
-                    System.out.print("Pilih: ");
+                    System.out.println(RED + "Error: " + e.getMessage() + RESET);
+                    System.out.print("Pilih Menu > ");
                 }
             }
+            System.out.println("\nTekan Enter untuk kembali ke menu...");
+            scanner.nextLine();
         }
     }
 
-// ================= FITUR FILM =================
+    // ================= HELPER UI =================
+
+    private void printHeader() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+        
+        System.out.println(GOLD + "============================================================");
+        System.out.println("   █▀▄▀█ █▀█ █░█ █ █▀▀   ▄▀█ █▀▄ █▀▄▀█ █ █▄░█");
+        System.out.println("   █░▀░█ █▄█ ▀▄▀ █ ██▄   █▀█ █▄▀ █░▀░█ █ █░▀█");
+        System.out.println("           ADMINISTRATOR CONTROL PANEL");
+        System.out.println("============================================================" + RESET);
+    }
+
+    private void printDashboard() {
+        int totalMovies = movieService.getAllMovies().size();
+        int totalUsers = userRepo.findAll().size();
+        List<Booking> bookings = bookingRepo.findAll();
+        double totalRevenue = bookings.stream().mapToDouble(Booking::getTotalPrice).sum();
+
+        System.out.println(CYAN + " [ DASHBOARD STATISTIK ]" + RESET);
+        System.out.println(" +---------------------+---------------------+---------------------+");
+        System.out.printf(" | %-19s | %-19s | %-19s |\n", "TOTAL FILM", "TOTAL USER", "PENDAPATAN");
+        System.out.println(" +---------------------+---------------------+---------------------+");
+        System.out.printf(" | %-19s | %-19s | Rp %-16s |\n", 
+                center(String.valueOf(totalMovies), 19), 
+                center(String.valueOf(totalUsers), 19), 
+                (long)totalRevenue);
+        System.out.println(" +---------------------+---------------------+---------------------+");
+    }
+    
+    private String center(String s, int size) {
+        return String.format("%" + (size + s.length()) / 2 + "s", s);
+    }
+
+    // ================= FITUR FILM =================
 
     private void addMovie() {
-        System.out.println("\n--- Tambah Film Baru ---");
-        System.out.print("ID Film: ");
-        String id = scanner.nextLine();
-        System.out.print("Judul: ");
+        System.out.println("\n" + GOLD + "--- Tambah Film Baru ---" + RESET);
+        System.out.println("(Ketik '0' untuk batal)");
+        
+        String id = "";
+        while (true) {
+            System.out.print("ID Film : ");
+            id = scanner.nextLine();
+            
+            if (id.equals("0")) { System.out.println("Proses dibatalkan."); return; } // FITUR BATAL
+
+            if (movieService.findById(id) != null) {
+                System.out.println(RED + "Error: ID Film '" + id + "' sudah ada! Gunakan ID lain." + RESET);
+            } else {
+                break; 
+            }
+        }
+
+        System.out.print("Judul   : ");
         String title = scanner.nextLine();
-        System.out.print("Genre: ");
+        System.out.print("Genre   : ");
         String genre = scanner.nextLine();
-        movieService.addMovie(new Movie(id, title, genre));
-        System.out.println("Film berhasil ditambahkan.");
+        System.out.print("Durasi (menit): "); 
+        int duration = 0;
+        try {
+             duration = Integer.parseInt(scanner.nextLine());
+        } catch(Exception e) { duration = 0; }
+
+        boolean success = movieService.addMovie(new Movie(id, title, genre, duration));
+        
+        if (success) {
+            System.out.println(GREEN + "✔ Film berhasil ditambahkan ke database." + RESET);
+        } else {
+            System.out.println(RED + "✘ Gagal menyimpan film." + RESET);
+        }
     }
 
     private void editMovie() {
-        System.out.println("\n--- Edit Film ---");
-        System.out.print("Masukkan ID film yang akan diedit: ");
-        String id = scanner.nextLine();
+        System.out.println("\n" + GOLD + "--- Edit Film ---" + RESET);
+        viewMovies(); 
+        System.out.println("(Ketik '0' untuk batal)");
 
-Movie movie = movieService.findById(id);
+        System.out.print("\nMasukkan ID film yang akan diedit: ");
+        String id = scanner.nextLine();
+        
+        if (id.equals("0")) { System.out.println("Proses dibatalkan."); return; } // FITUR BATAL
+
+        Movie movie = movieService.findById(id);
         if (movie == null) {
-            System.out.println("Film tidak ditemukan.");
+            System.out.println(RED + "✘ Film tidak ditemukan." + RESET);
             return;
         }
 
-        System.out.println("Data saat ini: " + movie.getTitle() + " (" + movie.getGenre() + ")");
+        System.out.println("Data saat ini: " + CYAN + movie.getTitle() + " (" + movie.getGenre() + ")" + RESET);
         System.out.print("Judul baru (Enter jika tetap): ");
         String newTitle = scanner.nextLine();
-        if (!newTitle.isBlank()) {
-            movie.setTitle(newTitle);
-        }
+        if (!newTitle.isBlank()) movie.setTitle(newTitle);
 
         System.out.print("Genre baru (Enter jika tetap): ");
         String newGenre = scanner.nextLine();
-        if (!newGenre.isBlank()) {
-            movie.setGenre(newGenre);
-        }
+        if (!newGenre.isBlank()) movie.setGenre(newGenre);
 
         movieService.updateMovie(movie);
-        System.out.println("Data film berhasil diperbarui.");
+        System.out.println(GREEN + "✔ Data film berhasil diperbarui." + RESET);
     }
 
-private void deleteMovie() {
-        System.out.println("\n--- Hapus Film ---");
+    private void deleteMovie() {
+        System.out.println("\n" + GOLD + "--- Hapus Film ---" + RESET);
+        System.out.println("(Ketik '0' untuk batal)");
+        
         System.out.print("Masukkan ID film yang akan dihapus: ");
         String id = scanner.nextLine();
 
+        if (id.equals("0")) { System.out.println("Proses dibatalkan."); return; } // FITUR BATAL
+
         boolean success = movieService.deleteMovieById(id);
         if (success) {
-            System.out.println("Film berhasil dihapus.");
+            System.out.println(GREEN + "✔ Film berhasil dihapus permanen." + RESET);
         } else {
-            System.out.println("Film tidak ditemukan.");
+            System.out.println(RED + "✘ Film tidak ditemukan." + RESET);
         }
     }
 
     private void viewMovies() {
         List<Movie> movies = movieService.sortMoviesByPopularity();
         if (movies.isEmpty()) {
-            System.out.println("Belum ada data film.");
+            System.out.println(RED + "Belum ada data film." + RESET);
             return;
         }
 
-        System.out.println("\n=== Daftar Film ===");
+        System.out.println("\n" + CYAN + "=== DAFTAR FILM ===" + RESET);
+        System.out.printf(GOLD + "%-6s | %-25s | %-15s | %-10s%n" + RESET, "ID", "JUDUL", "GENRE", "DURASI");
+        System.out.println("----------------------------------------------------------------");
         for (Movie m : movies) {
-            System.out.println(m.getId() + " - " + m.getTitle() + " (" + m.getGenre() + ")");
+            System.out.printf("%-6s | %-25s | %-15s | %-10s%n", 
+                m.getId(), 
+                (m.getTitle().length() > 25 ? m.getTitle().substring(0,22)+"..." : m.getTitle()), 
+                m.getGenre(),
+                m.getDuration() + " mnt"
+            );
         }
+        System.out.println("----------------------------------------------------------------");
     }
 
-// ================= FITUR JADWAL =================
+    // ================= FITUR JADWAL =================
 
     private void manageShowtimes() {
-        System.out.println("\n=== Atur Jadwal Tayang ===");
-        System.out.println("1. Lihat Jadwal");
-        System.out.println("2. Tambah Jadwal");
-        System.out.print("Pilih: ");
+        System.out.println("\n" + GOLD + "=== MANAJEMEN JADWAL ===" + RESET);
+        System.out.println("1. Lihat Jadwal Tayang");
+        System.out.println("2. Tambah Jadwal Baru");
+        System.out.println("3. Kembali");
+        System.out.print("Pilih > ");
 
         try {
-            int choice = Integer.parseInt(scanner.nextLine());
+            String input = scanner.nextLine();
+            if(input.isEmpty()) return;
+            int choice = Integer.parseInt(input);
             switch (choice) {
                 case 1 -> viewShowtimes();
                 case 2 -> addShowtime();
+                case 3 -> { return; }
                 default -> System.out.println("Pilihan tidak valid.");
             }
         } catch (NumberFormatException e) {
@@ -176,44 +258,51 @@ private void deleteMovie() {
             return;
         }
 
-        System.out.println("\n=== Daftar Jadwal Tayang ===");
+        System.out.println("\n" + CYAN + "=== JADWAL TAYANG ===" + RESET);
+        System.out.printf(GOLD + "%-6s | %-6s | %-10s | %-12s%n" + RESET, "ID", "FILM", "WAKTU", "HARGA");
+        System.out.println("------------------------------------------");
         for (Showtime st : showtimes) {
-            System.out.println(
-                    st.getId() + " | Movie: " + st.getMovieId() +
-                    " | " + st.getDate() + " " + st.getTime() +
-                    " | Rp " + (long)st.getPrice()
-            );
+            System.out.printf("%-6s | %-6s | %-10s | Rp %-10s%n",
+                    st.getId(), st.getMovieId(), st.getTime(), (long)st.getPrice());
         }
+        System.out.println("------------------------------------------");
     }
 
     private void addShowtime() {
-        System.out.println("\n--- Tambah Jadwal ---");
-        System.out.print("ID Showtime: ");
+        System.out.println("\n" + GOLD + "--- Tambah Jadwal ---" + RESET);
+        System.out.println("(Ketik '0' untuk batal)");
+        viewMovies(); 
+        
+        System.out.print("ID Showtime (Unik)   : ");
         String id = scanner.nextLine();
-        System.out.print("ID Film: ");
+        if (id.equals("0")) return; // BATAL
+
+        System.out.print("ID Film              : ");
         String movieId = scanner.nextLine();
-        System.out.print("Tanggal (yyyy-MM-dd): ");
-        String date = scanner.nextLine();
-        System.out.print("Jam (HH:mm): ");
+        if (movieId.equals("0")) return; // BATAL
+        
+        System.out.print("Jam Tayang (HH:mm)   : ");
         String time = scanner.nextLine();
-        System.out.print("Harga per kursi: ");
+        
+        System.out.print("Harga Tiket          : ");
         double price;
         try {
-            price = Double.parseDouble(scanner.nextLine());
+            String p = scanner.nextLine();
+            if (p.equals("0")) return; // BATAL
+            price = Double.parseDouble(p);
         } catch (NumberFormatException e) {
-            System.out.println("Harga tidak valid.");
+            System.out.println(RED + "Harga tidak valid." + RESET);
             return;
         }
 
-        Showtime showtime = new Showtime(id, movieId, time, date, price);
+        Showtime showtime = new Showtime(id, movieId, time, "-", price); 
         movieService.addShowtime(showtime);
-        System.out.println("Jadwal tayang berhasil ditambahkan.");
+        System.out.println(GREEN + "✔ Jadwal tayang berhasil ditambahkan." + RESET);
     }
 
-// ================= FITUR USER & LAPORAN =================
+    // ================= FITUR USER & LAPORAN =================
 
     private void viewUsers() {
-        // PERBAIKAN: Menggunakan List<Account> agar cocok dengan UserRepository
         List<Account> accounts = userRepo.findAll();
         
         if (accounts.isEmpty()) {
@@ -221,11 +310,14 @@ private void deleteMovie() {
             return;
         }
 
-        System.out.println("\n=== Daftar Akun Terdaftar ===");
+        System.out.println("\n" + CYAN + "=== DATABASE USER ===" + RESET);
+        System.out.printf(GOLD + "%-10s | %-20s%n" + RESET, "ROLE", "USERNAME");
+        System.out.println("------------------------------");
         for (Account acc : accounts) {
-            String role = (acc instanceof Admin) ? "[ADMIN]" : "[USER]";
-            System.out.println(role + " " + acc.getUsername());
+            String role = (acc instanceof Admin) ? GOLD + "ADMIN" + RESET : "USER";
+            System.out.printf("%-20s | %-20s%n", role, acc.getUsername());
         }
+        System.out.println("------------------------------");
     }
 
     private void viewTransactions() {
@@ -235,17 +327,17 @@ private void deleteMovie() {
             return;
         }
 
-        System.out.println("\n=== Daftar Transaksi ===");
+        System.out.println("\n" + CYAN + "=== RIWAYAT TRANSAKSI ===" + RESET);
+        System.out.printf(GOLD + "%-15s | %-10s | %-15s | %-10s%n" + RESET, "KODE", "USER", "SHOWTIME", "TOTAL");
+        System.out.println("----------------------------------------------------------");
         for (Booking b : bookings) {
-            System.out.println(
-                    "Kode: " + b.getBookingCode() +
-                    " | User: " + b.getUserId() +
-                    " | Total: Rp " + (long)b.getTotalPrice()
-            );
+            System.out.printf("%-15s | %-10s | %-15s | Rp %-10s%n",
+                    b.getBookingCode(), b.getUserId(), b.getShowtimeId(), (long)b.getTotalPrice());
         }
+        System.out.println("----------------------------------------------------------");
     }
 
-private void generateReport() {
+    private void generateReport() {
         List<Booking> all = bookingRepo.findAll();
         int totalTiket = 0;
         double totalPendapatan = 0;
@@ -255,12 +347,18 @@ private void generateReport() {
             totalPendapatan += b.getTotalPrice();
         }
 
-        System.out.println("\n=== Laporan ===");
-        System.out.println("Total Tiket Terjual : " + totalTiket);
-        System.out.println("Total Pendapatan    : Rp " + (long)totalPendapatan);
+        System.out.println("\n" + GREEN + "=== FINANCIAL REPORT ===" + RESET);
+        System.out.println("------------------------");
+        System.out.printf("%-20s : %d%n", "Total Tiket Terjual", totalTiket);
+        System.out.printf("%-20s : Rp %d%n", "Total Pendapatan", (long)totalPendapatan);
+        System.out.println("------------------------");
         
         FileManager.getInstance().writeFile("data/report.txt",
-                List.of("Total Tiket: " + totalTiket, "Pendapatan: " + totalPendapatan));
-        System.out.println("(Laporan telah diekspor ke data/report.txt)");
+                List.of("--- LAPORAN KEUANGAN BIOSKOP ---",
+                        "Tanggal Generate: " + java.time.LocalDate.now(),
+                        "Total Tiket: " + totalTiket, 
+                        "Pendapatan: " + (long)totalPendapatan));
+        
+        System.out.println(CYAN + "✔ Laporan tercetak di data/report.txt" + RESET);
     }
 }
