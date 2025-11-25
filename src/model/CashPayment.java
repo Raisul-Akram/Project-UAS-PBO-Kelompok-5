@@ -52,3 +52,37 @@ public class CashPayment implements Payment {
             }
         }
     }
+
+@Override
+    public String getPaymentType() {
+        return "Tunai";
+    }
+    
+    // Method khusus untuk mencetak Struk agar kode lebih rapi
+    private void printReceipt(String method, double total, double paid, double change) {
+        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        
+        System.out.println("\n=========================================");
+        System.out.println("          BUKTI PEMBAYARAN LUNAS        ");
+        System.out.println("===========================================");
+        System.out.printf("%-15s: %s\n", "Tanggal", date);
+        System.out.printf("%-15s: %s\n", "Metode", method);
+        System.out.println("-------------------------------------------");
+        System.out.printf("%-15s: Rp %d\n", "Total Tagihan", (long)total);
+        System.out.printf("%-15s: Rp %d\n", "Jumlah Bayar", (long)paid);
+        
+        // Tampilkan kembalian jika ada
+        if (change >= 0) {
+            System.out.printf("%-15s: Rp %d\n", "Kembalian", (long)change);
+        }
+        
+        System.out.println("===========================================");
+        System.out.println("        Terima Kasih atas Kunjungan Anda");
+        
+        // 6. Tampilkan Barcode Tiket (ASCII Art)
+        System.out.println("\n           TIKET VALIDATED");
+        System.out.println("║█║▌║█║▌│║▌█║▌║│█║▌║█║▌║║█║▌║█║▌│║▌█║▌║│█║▌");
+        System.out.println("║█║▌║█║▌│║▌█║▌║│█║▌║█║▌║║█║▌║█║▌│║▌█║▌║│█║▌");
+        System.out.println("===========================================\n");
+    }
+}
