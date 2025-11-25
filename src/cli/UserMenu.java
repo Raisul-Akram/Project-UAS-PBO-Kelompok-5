@@ -11,7 +11,6 @@ import service.BookingService;
 import service.MovieService;
 import service.PaymentService;
 import util.InvalidInputException;
-import util.QRGenerator;
 import util.SeatUnavailableException;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Menu CLI untuk User.
+ * Menu CLI untuk User (Versi Ultimate - MOVIE TIX).
  * @author Kelompok 5
  */
 public class UserMenu {
@@ -28,6 +27,14 @@ public class UserMenu {
     private BookingService bookingService;
     private PaymentService paymentService;
     private Scanner scanner;
+
+    // ANSI Colors (Tema: CYAN & WHITE)
+    private final String RESET = "\u001B[0m";
+    private final String CYAN = "\u001B[36m";
+    private final String GREEN = "\u001B[32m";
+    private final String RED = "\u001B[31m";
+    private final String YELLOW = "\u001B[33m";
+    private final String BOLD = "\u001B[1m";
 
     public UserMenu(String userId) {
         this.userId = userId;
@@ -39,142 +46,241 @@ public class UserMenu {
 
     public void display() {
         while (true) {
-            System.out.println("\n\033[36m=== User Menu ===\033[0m"); // Warna cyan
-            System.out.println("1. Lihat Daftar Film");
-            System.out.println("2. Cari Film");
-            System.out.println("3. Pesan Tiket");
-            System.out.println("4. Lihat Riwayat Pemesanan");
-            System.out.println("5. Logout");
-            System.out.print("Pilih: ");
+            printHeader();
+            
+            System.out.println(CYAN + "   [ MAIN MENU ]" + RESET);
+            System.out.println("   +---------------------------------------+");
+            System.out.println("   | 1. Lihat Daftar Film                  |");
+            System.out.println("   | 2. Cari Film                          |");
+            System.out.println("   | 3. Pesan Tiket                        |");
+            System.out.println("   | 4. Riwayat Pemesanan                  |");
+            System.out.println("   | 5. Logout                             |");
+            System.out.println("   +---------------------------------------+");
+            System.out.print("   Pilih Menu > ");
 
             boolean validInput = false;
             while (!validInput) {
                 try {
-                    int choice = Integer.parseInt(scanner.nextLine());
+                    String input = scanner.nextLine();
+                    if (input.isEmpty()) continue;
+                    int choice = Integer.parseInt(input);
+
                     switch (choice) {
-                        case 1 -> {
-                            viewMovies();
-                            validInput = true;
-                        }
-                        case 2 -> {
-                            searchMovies();
-                            validInput = true;
-                        }
-                        case 3 -> {
-                            bookTicket();
-                            validInput = true;
-                        }
-                        case 4 -> {
-                            viewHistory();
-                            validInput = true;
-                        }
-                        case 5 -> {
-                            validInput = true;
-                            return;
-                        }
+                        case 1 -> { viewMovies(); validInput = true; }
+                        case 2 -> { searchMovies(); validInput = true; }
+                        case 3 -> { bookTicket(); validInput = true; }
+                        case 4 -> { viewHistory(); validInput = true; }
+                        case 5 -> { return; }
                         default -> throw new InvalidInputException("Pilihan tidak valid.");
                     }
                 } catch (NumberFormatException | InvalidInputException e) {
-                    System.out.println("Error: " + e.getMessage() + ". Silakan masukkan angka yang valid.");
-                    System.out.print("Pilih: ");
+                    System.out.println(RED + "   Error: " + e.getMessage() + RESET);
+                    System.out.print("   Pilih Menu > ");
                 }
             }
+            
+            System.out.println("\n   Tekan Enter untuk kembali...");
+            scanner.nextLine();
         }
     }
+
+    // ================= HELPER UI =================
+
+    private void printHeader() {
+        System.out.print("\033[H\033[2J"); // Clear Screen
+        System.out.flush();
+
+        System.out.println(CYAN + "=========================================");
+        // ASCII ART: MOVIE TIX
+        System.out.println(" █▀▄▀█ █▀█ █░█ █ █▀▀   ▀█▀ █ ▀▄▀");
+        System.out.println(" █░▀░█ █▄█ ▀▄▀ █ ██▄   ░█░ █ █░█");
+        System.out.println("          SELF SERVICE SYSTEM");
+        System.out.println("=========================================" + RESET);
+        System.out.println("   Selamat datang, " + BOLD + userId + RESET);
+        System.out.println(); 
+    }
+
+    // ================= FITUR FILM =================
 
     private void viewMovies() {
         List<Movie> movies = movieService.sortMoviesByPopularity();
         if (movies.isEmpty()) {
-            System.out.println("Belum ada data film.");
+            System.out.println(RED + "   Belum ada data film saat ini." + RESET);
             return;
         }
-
-        System.out.println("\n=== Daftar Film ===");
+        
+        System.out.println("\n" + CYAN + "   === DAFTAR FILM SEDANG TAYANG ===" + RESET);
+        System.out.printf("   %-6s | %-25s | %-10s | %-8s%n", "ID", "JUDUL", "GENRE", "DURASI");
+        System.out.println("   ---------------------------------------------------------");
+        
         for (Movie m : movies) {
-            System.out.println(m.getId() + " - " + m.getTitle() + " (" + m.getGenre() + ")");
+            System.out.printf("   %-6s | %-25s | %-10s | %d mnt%n", 
+                m.getId(), 
+                (m.getTitle().length() > 25 ? m.getTitle().substring(0,22)+"..." : m.getTitle()), 
+                m.getGenre(), 
+                m.getDuration());
         }
+        System.out.println("   ---------------------------------------------------------");
     }
 
     private void searchMovies() {
-        System.out.print("Cari judul: ");
+        System.out.println("\n" + CYAN + "   --- Cari Film ---" + RESET);
+        System.out.print("   Masukkan judul film: ");
         String title = scanner.nextLine();
+        
         List<Movie> results = movieService.searchMovies(title);
-
         if (results.isEmpty()) {
-            System.out.println("Film tidak ditemukan.");
+            System.out.println(RED + "   Film tidak ditemukan." + RESET);
             return;
         }
-
-        System.out.println("\n=== Hasil Pencarian ===");
+        System.out.println("\n   === Hasil Pencarian ===");
         for (Movie m : results) {
-            System.out.println(m.getId() + " - " + m.getTitle() + " (" + m.getGenre() + ")");
+             System.out.printf("   Found: [%s] %s (%s)\n", m.getId(), m.getTitle(), m.getGenre());
         }
     }
 
+    // ================= PROSES PEMESANAN (CORE) =================
+
     private void bookTicket() {
-        System.out.print("ID Film: ");
+        System.out.println("\n" + CYAN + "   === PESAN TIKET ===" + RESET);
+        System.out.println(YELLOW + "   (Ketik '0' untuk batal)" + RESET);
+
+        // 1. Input ID Film
+        System.out.print("   Masukkan ID Film: ");
         String movieId = scanner.nextLine();
+        if (movieId.equals("0")) return; 
 
-        System.out.print("ID Showtime: ");
+        // 2. Input ID Showtime
+        System.out.print("   Masukkan ID Showtime (Cth: S001): ");
         String showtimeId = scanner.nextLine();
+        if (showtimeId.equals("0")) return;
 
-        // Ambil showtime untuk dapat harga per kursi
         Showtime showtime = movieService.findShowtimeById(showtimeId);
         if (showtime == null) {
-            System.out.println("Showtime tidak ditemukan.");
+            System.out.println(RED + "   ✘ Showtime tidak ditemukan." + RESET);
             return;
         }
 
-        System.out.print("Kursi (pisah koma, e.g., A1,A2): ");
-        String[] seatsArr = scanner.nextLine().split(",");
-        List<String> seats = new ArrayList<>();
-        for (String s : seatsArr) {
-            seats.add(s.trim());
-        }
+        // 3. Tampilkan Peta Kursi
+        displaySeatMap(showtimeId);
 
-        double pricePerSeat = showtime.getPrice();
-        double price = pricePerSeat * seats.size();
-        System.out.println("Harga per kursi : " + pricePerSeat);
-        System.out.println("Total harga      : " + price);
+        // 4. Validasi Input Kursi
+        List<String> validSeats = new ArrayList<>();
+        while (true) {
+            System.out.print("   Pilih Kursi (Pisah ';', Cth: A1;A2): ");
+            String input = scanner.nextLine();
+            
+            if (input.equals("0")) return;
+            if (input.trim().isEmpty()) {
+                System.out.println(RED + "   Mohon pilih minimal satu kursi." + RESET);
+                continue;
+            }
 
-        // Simulasi pembayaran
-        System.out.println("Pilih metode pembayaran:");
-        System.out.println("1. Tunai");
-        System.out.println("2. QRIS");
-        System.out.println("3. Virtual Account");
-        System.out.print("Pilih: ");
+            String[] seatsArr = input.split(";");
+            boolean allValid = true;
+            validSeats.clear();
 
-        int payChoice = -1;
-        boolean validPayChoice = false;
-        while (!validPayChoice) {
-            try {
-                payChoice = Integer.parseInt(scanner.nextLine());
-                if (payChoice < 1 || payChoice > 3) {
-                    System.out.println("Pilihan tidak valid, silakan coba lagi.");
-                    System.out.print("Pilih: ");
-                } else {
-                    validPayChoice = true;
+            for (String s : seatsArr) {
+                String seat = s.trim().toUpperCase();
+                if (!seat.matches("[A-E][1-6]")) {
+                    System.out.println(RED + "   Kursi '" + seat + "' TIDAK VALID! (Hanya A1-E6)" + RESET);
+                    allValid = false;
+                    break;
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Input tidak valid. Silakan masukkan angka 1, 2, atau 3.");
-                System.out.print("Pilih: ");
+                validSeats.add(seat);
             }
+
+            if (allValid) break; 
         }
 
-        Payment payment = getPaymentMethod(payChoice);
-        if (paymentService.process(payment, price)) {
-            String bookingCode = "BK" + System.currentTimeMillis(); // Kode booking otomatis
-            Booking booking = new Booking(bookingCode, userId, showtimeId, seats, price);
-            try {
-                bookingService.createBooking(booking);
-                System.out.println("Pemesanan berhasil! Kode Booking: " + bookingCode);
-                QRGenerator.generateQR(bookingCode); // Bonus QR ASCII
-            } catch (SeatUnavailableException e) {
-                System.out.println("Error: " + e.getMessage());
-            }
-        } else {
-            System.out.println("Pembayaran gagal.");
+        // 5. Cek Ketersediaan
+        if (!bookingService.isSeatsAvailable(showtimeId, validSeats)) {
+            System.out.println(RED + "\n   [GAGAL] Kursi pilihan Anda SUDAH TERISI." + RESET);
+            System.out.println("   Silakan pilih kursi HIJAU [Nomor] di peta.");
+            return; 
         }
+
+        // 6. Konfirmasi & Bayar
+        double pricePerSeat = showtime.getPrice();
+        double price = pricePerSeat * validSeats.size();
+        
+        System.out.println("\n   ---------------------------------");
+        System.out.println("   Kursi       : " + String.join(", ", validSeats));
+        System.out.println(CYAN + "   TOTAL BAYAR : Rp " + (long)price + RESET);
+        System.out.println("   ---------------------------------");
+
+        boolean paymentSuccess = false;
+        while (!paymentSuccess) {
+            System.out.println("\n   Metode Pembayaran:");
+            System.out.println("   1. Tunai");
+            System.out.println("   2. QRIS");
+            System.out.println("   3. Virtual Account");
+            System.out.println("   4. Batal");
+            System.out.print("   Pilih > ");
+
+            int payChoice = -1;
+            try {
+                String input = scanner.nextLine();
+                payChoice = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("   Input angka saja.");
+                continue; 
+            }
+
+            if (payChoice == 4) {
+                System.out.println(YELLOW + "   Transaksi dibatalkan." + RESET);
+                return; 
+            }
+
+            if (payChoice < 1 || payChoice > 4) {
+                System.out.println(RED + "   Pilihan tidak valid." + RESET);
+                continue;
+            }
+
+            Payment payment = getPaymentMethod(payChoice);
+            
+            if (paymentService.process(payment, price)) {
+                paymentSuccess = true;
+                
+                String bookingCode = "BK" + System.currentTimeMillis();
+                Booking booking = new Booking(bookingCode, userId, showtimeId, validSeats, price);
+                try {
+                    bookingService.createBooking(booking);
+                    System.out.println(GREEN + "\n   ✔ TRANSAKSI SUKSES! Kode: " + bookingCode + RESET);
+                    System.out.println("   ========================================");
+                } catch (SeatUnavailableException e) {
+                    System.out.println(RED + "   Error Sistem: " + e.getMessage() + RESET);
+                }
+            } else {
+                System.out.println(YELLOW + "\n   Pembayaran Belum Selesai." + RESET);
+                System.out.print("   Coba lagi? (y/n): ");
+                if (!scanner.nextLine().equalsIgnoreCase("y")) return;
+            }
+        }
+    }
+
+    private void displaySeatMap(String showtimeId) {
+        System.out.println("\n   ================ LAYAR ================");
+        List<String> bookedSeats = bookingService.getBookedSeats(showtimeId);
+        char[] rows = {'A', 'B', 'C', 'D', 'E'};
+        int cols = 6;
+
+        for (char row : rows) {
+            System.out.print("   Row " + row + " | ");
+            for (int i = 1; i <= cols; i++) {
+                String seatNum = row + String.valueOf(i);
+                
+                if (bookedSeats.contains(seatNum)) {
+                    System.out.print(RED + "[XX] " + RESET); 
+                } else {
+                    System.out.print(GREEN + "[" + seatNum + "] " + RESET);
+                }
+                if (i == 3) System.out.print("   "); 
+            }
+            System.out.println();
+        }
+        System.out.println("\n   Ket: " + RED + "[XX]" + RESET + " Terisi, " + GREEN + "[A1]" + RESET + " Kosong");
+        System.out.println("   =======================================");
     }
 
     private Payment getPaymentMethod(int choice) {
@@ -189,18 +295,13 @@ public class UserMenu {
     private void viewHistory() {
         List<Booking> bookings = bookingService.getBookingsByUser(userId);
         if (bookings.isEmpty()) {
-            System.out.println("Belum ada riwayat pemesanan.");
+            System.out.println(YELLOW + "   Belum ada riwayat pemesanan." + RESET);
             return;
         }
-
-        System.out.println("\n=== Riwayat Pemesanan ===");
+        System.out.println("\n" + CYAN + "   === RIWAYAT PEMESANAN ===" + RESET);
         for (Booking b : bookings) {
-            System.out.println(
-                    "Kode: " + b.getBookingCode() +
-                    " | Showtime: " + b.getShowtimeId() +
-                    " | Kursi: " + String.join(",", b.getSeats()) +
-                    " | Total: " + b.getTotalPrice()
-            );
+            System.out.printf("   Kode: %-14s | Kursi: %-8s | Rp %d\n",
+                    b.getBookingCode(), String.join(",", b.getSeats()), (long)b.getTotalPrice());
         }
     }
 }
