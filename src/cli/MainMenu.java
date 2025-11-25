@@ -19,7 +19,8 @@ public class MainMenu {
         this.authService = new AuthService();
         this.scanner = new Scanner(System.in);
     }
-public void display() {
+
+    public void display() {
         // Banner ASCII
         System.out.println("\033[34m" + // Warna biru
                 "██████╗ ██╗ ██████╗ ███████╗██╗  ██╗ ██████╗ ██████╗\n" +
@@ -61,6 +62,7 @@ public void display() {
             }
         }
     }
+
     private void login() {
         System.out.print("Username: ");
         String username = scanner.nextLine();
