@@ -1,4 +1,4 @@
-import cli.MainMenu;
+import cli.MainMenu
 
 /**
  * Main class untuk menjalankan aplikasi Sistem Pemesanan Tiket Bioskop.
