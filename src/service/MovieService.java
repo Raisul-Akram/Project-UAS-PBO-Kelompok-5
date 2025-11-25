@@ -25,9 +25,12 @@ public class MovieService {
 
     // ========= BAGIAN FILM =========
 
-    /** Tambah film baru */
-    public void addMovie(Movie movie) {
-        movieRepo.save(movie);
+    /** 
+     * Tambah film baru.
+     * MENGEMBALIKAN BOOLEAN agar AdminMenu tahu sukses/gagal.
+     */
+    public boolean addMovie(Movie movie) {
+        return movieRepo.save(movie);
     }
 
     /** Cari film berdasarkan judul (contains, case-insensitive) */
@@ -37,31 +40,33 @@ public class MovieService {
                 .collect(Collectors.toList());
     }
 
-    /** Urutkan film berdasarkan popularitas (paling populer di atas) */
+    /** 
+     * Urutkan film berdasarkan JUDUL (A-Z).
+     */
     public List<Movie> sortMoviesByPopularity() {
-        return movieRepo.findAll().stream()
-                .sorted((m1, m2) -> Integer.compare(m2.getPopularity(), m1.getPopularity()))
-                .collect(Collectors.toList());
+        List<Movie> allMovies = movieRepo.findAll();
+        allMovies.sort((m1, m2) -> m1.getTitle().compareToIgnoreCase(m2.getTitle()));
+        return allMovies;
     }
 
     /** Ambil semua film */
     public List<Movie> getAllMovies() {
         return movieRepo.findAll();
     }
-
+ 
     /** Cari film berdasarkan ID (untuk edit/hapus) */
     public Movie findById(String id) {
-        return movieRepo.findById(id);   // method ini ada di MovieRepository
+        return movieRepo.findById(id);   
     }
 
     /** Hapus film berdasarkan ID, kembalikan true kalau berhasil */
     public boolean deleteMovieById(String id) {
-        return movieRepo.deleteById(id); // juga ada di MovieRepository
+        return movieRepo.deleteById(id); 
     }
 
     /** Simpan perubahan film ke file */
     public void updateMovie(Movie movie) {
-        movieRepo.update(movie);         // ini memanggil saveToFile() di MovieRepository
+        movieRepo.update(movie);         
     }
 
     // ========= BAGIAN SHOWTIME =========
