@@ -15,5 +15,5 @@ public class Seat {
 
     public String getId() { return id; }
     public boolean isAvailable() { return isAvailable; }
-    public void setAvailable(boolean available) { this.isAvailable = available; }
+    public void setAvailable(boolean available) { this.isAvailable = available; }
 }
